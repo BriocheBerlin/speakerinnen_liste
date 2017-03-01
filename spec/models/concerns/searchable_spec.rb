@@ -8,6 +8,8 @@ describe Searchable, elasticsearch: true do
                                       topic_list: ['ruby', 'algorithms'],
                                       bio: 'Amazing person', main_topic: 'life', email: 'info@example.com') }
 
+
+########## ########## FAILS ########## ##########
   describe 'elasticsearch index' do
     it 'should be created' do
       Profile.__elasticsearch__.refresh_index!

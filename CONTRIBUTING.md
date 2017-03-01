@@ -77,6 +77,30 @@ When you have made your changes and tested them, please send us a [pull request]
 	user.save
 	```
 
+## Search
+All above steps are necessary, then do:
+
+1. Install Elasticsearch (e.g. using brew).
+
+2. Start Elasticsearch by typing `elasticsearch`.
+
+2. Import seeds from Postgres to Elasticsearch:
+	```
+	bundle exec rake elasticsearch:import:all
+	```
+
+3. Check to see if it is working.
+This command fetches the total number of documents in the cluster:
+	```
+	curl -XGET 'http://localhost:9200/_count?pretty' -d '
+	{
+	    "query": {
+	        "match_all": {}
+	    }
+	}
+	'
+	```
+
 ## Git(Hub) Help
 
 If you have any questions about Git or GitHub, [GitHub
