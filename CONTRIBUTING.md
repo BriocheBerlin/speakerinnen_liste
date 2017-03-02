@@ -101,6 +101,27 @@ This command fetches the total number of documents in the cluster:
 	'
 	```
 
+4. To manually add entries to the index:
+```
+curl -XPUT 'localhost:9200/profile_index/profile/1?pretty' -H 'Content-Type: application/json' -d'
+{
+  "fullname": "Thuy",
+  "twitterhandle": "keins!",
+  "tag": "",
+  "languages": "",
+  "city": "",
+  "country": "",
+  "website": "",
+  "bio": "Super interesting stuff...."
+}
+'
+```
+
+If need be you can delete everything on the cluster:
+```
+curl -XDELETE 'http://localhost:9200/_all'
+```
+
 ## Git(Hub) Help
 
 If you have any questions about Git or GitHub, [GitHub
