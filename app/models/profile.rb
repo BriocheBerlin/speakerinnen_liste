@@ -12,6 +12,76 @@ class Profile < ActiveRecord::Base
   extend FriendlyId
   friendly_id :slug_candidate, use: :slugged
 
+  super_special_settings = {
+    index: {
+      number_of_shards: 1,
+      analysis: {
+        char_filter: {
+          strip_twitter: {
+            type: "pattern_replace",
+            pattern: "@",
+            replacement: ""
+          }
+        },
+        analyzer:{
+          twitter_analyzer: {
+            type: "custom",
+            tokenizer: "keyword",
+            filter: ["lowercase"],
+            char_filter: ["strip_twitter"]
+          },
+          topic_list_analyzer: {
+            type: "custom",
+            tokenizer: "standard",  #????
+            filter: ["lowercase"]
+          }
+          # bio_fields: {
+          # type: "custom",
+          #  :english => {
+          #     type: 'string', 
+          #     :analyzer => "english"
+          #   },
+          #   :german => {
+          #     type: 'string', 
+          #     :analyzer => "german"
+          #   }
+          # }
+        }
+      }
+    }
+  }
+
+ # bio_fields = {
+ #   bio: {
+ #     type: "text",
+ #     fields: {
+ #        english: {
+ #          analyzer: "english"
+ #        },
+ #        german: {
+ #          analyzer: "german"
+ #        }
+ #     }
+ #   }
+ #  }
+
+
+  settings super_special_settings do
+    mappings dynamic: 'false' do
+      indexes :fullname,   type: 'string', analyzer: 'standard'
+      indexes :firstname,  type: 'string', analyzer: 'standard'
+      indexes :lastname,   type: 'string', analyzer: 'standard'
+      indexes :twitter,    type: 'string', analyzer: 'twitter_analyzer'
+      indexes :topic_list, type: 'string', analyzer: 'topic_list_analyzer' #query: scoring abschalten????
+      indexes :main_topic, type: 'string', analyzer: 'standard'
+      indexes :languages,  type: 'string', analyzer: 'standard' # array? pass 2 fields, german & english
+      indexes :city,       type: 'string', analyzer: 'standard' # geodaten??
+      indexes :country,    type: 'string', analyzer: 'standard'
+      indexes :website,    type: 'string', analyzer: 'standard'
+      indexes :bio,        type: 'string', analyzer: 'german' # german more or less superset of english
+    end
+  end
+
   auto_html_for :media_url do
     html_escape
     image
@@ -128,6 +198,34 @@ class Profile < ActiveRecord::Base
     end
   end
 
+
+# class Article < ActiveRecord::Base
+#   include Elasticsearch::Model
+#   include Elasticsearch::Model::Callbacks
+
+#   def self.search(query)
+#     __elasticsearch__.search(
+#       {
+#         query: {
+#           multi_match: {
+#             query: query,
+#             fields: ['title^10', 'content']
+#           }
+#         },
+#         highlight: {
+#           pre_tags: ['<em class="label label-highlight">'],
+#           post_tags: ['</em>'],
+#           fields: {
+#             title:   { number_of_fragments: 0 },
+#             content: { fragment_size: 25 }
+#           }
+#         }
+#       }
+#     )
+#   end
+
+  
+# end
   # for simple admin search
   # def self.search(query)
   #   where("firstname || ' ' || lastname ILIKE :query OR twitter ILIKE :query", query: "%#{query}%")

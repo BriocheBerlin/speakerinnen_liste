@@ -13,19 +13,9 @@ module Searchable
 
     def as_indexed_json(options={})
       self.as_json(
-        only: [:firstname, :lastname, :twitter],
+        only: [:firstname, :lastname, :twitter, :languages, :city, :country, :website, :bio],
           methods: [:fullname, :topic_list, :main_topic]
       )
     end
-
-    # def as_indexed_json(options={})
-    #   self.as_json(
-    #     only: [:firstname, :lastname, :twitter],
-    #       methods: [:fullname, :topic_list, :bio, :main_topic],
-    #     include: {
-    #       medialinks: { only: [:title, :url] }
-    #     }
-    #   )
-    # end
   end
 end

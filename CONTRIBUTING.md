@@ -106,7 +106,7 @@ This command fetches the total number of documents in the cluster:
 curl -XPUT 'localhost:9200/profile_index/profile/1?pretty' -H 'Content-Type: application/json' -d'
 {
   "fullname": "Thuy",
-  "twitterhandle": "keins!",
+  "twitter": "@example_thuy",
   "tag": "",
   "languages": "",
   "city": "",
