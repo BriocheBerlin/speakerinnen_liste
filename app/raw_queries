@@ -1,0 +1,223 @@
+{
+  "query": {
+    "multi_match": {
+      "query": "Eyndhfen",
+      "fields": [
+        "fullname^3",
+        "twitter.raw^4",
+        "twitter.twitter_partial_match^2",
+        "topic_list^3",
+        "languages^2",
+        "city",
+        "country",
+        "bio"
+      ],
+      "tie_breaker": 0.3,
+      "fuzziness": "AUTO"
+    }
+  }
+}
+
+
+#########################################
+{
+  "settings": {
+    "index": {
+      "analysis": {
+        "analyzer": {
+          "topic_list_analyzer": {
+            "type": "custom",
+            "tokenizer": "keyword",
+            "filter": [
+              "lowercase"
+            ]
+          },
+          "twitter_analyzer": {
+            "type": "custom",
+            "tokenizer": "standard",
+            "filter": [
+              "lowercase"
+            ],
+            "char_filter": {
+              "strip_twitter": {
+                "type": "pattern_replace",
+                "pattern": "[^a-z0-9]",
+                "replacement": ""
+              }
+            }
+          },
+          "twitter_analyzer_perfect_match": {
+            "type": "custom",
+            "tokenizer": "keyword",
+            "filter": [
+              "lowercase"
+            ]
+          }
+        }
+      }
+    },
+    "number_of_shards": 1
+  },
+  "mappings": {
+    "profile": {
+      "properties": {
+        "fullname": {
+          "type": "string",
+          "analyzer": "german",
+          "norms": { "enabled": false }
+        },
+        "main_topic": {
+          "type": "string",
+          "analyzer": "standard"
+        },
+        "topic_list": {
+          "type": "string",
+          "analyzer": "topic_list_analyzer"
+        },
+        "languages": {
+          "type": "string",
+          "analyzer": "standard"
+        },
+        "city": {
+          "type": "string",
+          "analyzer": "standard",
+          "norms": { "enabled": false }
+        },
+        "country": {
+          "type": "string",
+          "analyzer": "standard"
+        },
+        "website": {
+          "type": "string",
+          "analyzer": "german"
+        },
+        "bio": {
+          "type": "string",
+          "fields": {
+            "english": {
+              "type": "string",
+              "analyzer": "english"
+            },
+            "german": {
+              "type": "string",
+              "analyzer": "german"
+            }
+          }
+        },
+        "twitter": {
+          "type": "string",
+          "fields": {
+            "raw": {
+              "type": "string",
+              "analyzer": "twitter_analyzer_perfect_match"
+            },
+            "partial_match": {
+              "type": "string",
+              "analyzer": "twitter_analyzer"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
+{
+  "fullname": "",
+  "twitterhandle": "",
+  "tag": "",
+  "languages": "",
+  "city": "",
+  "country": "",
+  "website": "",
+  "bio": "" // not searchable in first iteration, lives in profile_translations
+}
+
+
+//firstname, lastname, talks????
+curl -XPUT 'localhost:9200/profile_index/profile/1?pretty' -H 'Content-Type: application/json' -d'
+{
+  "fullname": "Lisa",
+  "twitterhandle": "keins!",
+  "tag": "",
+  "languages": "",
+  "city": "",
+  "country": "",
+  "website": "",
+  "bio": "bla"
+}
+'
+
+
+
+//make tags array of tags?
+
+// what is the difference between include and only?
+
+// Field mappings:
+// don't analyze: twitterhandle, city, country, website
+// analyze: fullname, bio, tag??? wenn viele tags da sind???
+
+{
+  "tag": {
+    "type":   "string",
+    "index":  "not_analyzed"
+  },
+  "twitterhandle": {
+    "type":   "string",
+    "index":  "not_analyzed"
+  },
+  "bio": {
+    "type": "string",
+    "analyzer": "english" // and German???
+  }
+}
+
+
+
+
+
+curl -XGET 'localhost:9200/speakerinnen_liste_application_development/profile/_search?pretty' -H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "match": {
+      "city": "Berlin"
+    }
+  }
+}'
+
+
+curl -XGET 'localhost:9200/speakerinnen_liste_application_development/profile/_search?pretty' -H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "bool": {
+      "must": { // brauche ich must???
+        "match": {
+          "fullname": "Ann"
+        }
+      },
+      "filter": {
+        "match": {
+          "city": "Berlin"
+        }
+      }
+    }
+  }
+}'
+
+
+curl -XGET 'localhost:9200/speakerinnen_liste_application_development/profile/_search?pretty' -H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "match": {
+      "fullname": "ann"
+    }
+  },
+  "aggs": {
+    "all_cities": {
+      "terms": {"field": "city"}
+    }
+  }
+}
+'

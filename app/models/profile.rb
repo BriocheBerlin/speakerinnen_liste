@@ -19,7 +19,7 @@ class Profile < ActiveRecord::Base
         char_filter: {
           strip_twitter: {
             type: "pattern_replace",
-            pattern: "@",
+            pattern: "[^a-z0-9]",
             replacement: ""
           }
         },
@@ -32,53 +32,25 @@ class Profile < ActiveRecord::Base
           },
           topic_list_analyzer: {
             type: "custom",
-            tokenizer: "standard",  #????
+            tokenizer: "keyword", # maren: wie soll das matchen? keyword, nicht keyword? evtl booster nutzen
             filter: ["lowercase"]
           }
-          # bio_fields: {
-          # type: "custom",
-          #  :english => {
-          #     type: 'string', 
-          #     :analyzer => "english"
-          #   },
-          #   :german => {
-          #     type: 'string', 
-          #     :analyzer => "german"
-          #   }
-          # }
         }
       }
     }
   }
 
- # bio_fields = {
- #   bio: {
- #     type: "text",
- #     fields: {
- #        english: {
- #          analyzer: "english"
- #        },
- #        german: {
- #          analyzer: "german"
- #        }
- #     }
- #   }
- #  }
-
-
   settings super_special_settings do
-    mappings dynamic: 'false' do
-      indexes :fullname,   type: 'string', analyzer: 'standard'
-      indexes :firstname,  type: 'string', analyzer: 'standard'
-      indexes :lastname,   type: 'string', analyzer: 'standard'
+    mappings dynamic: 'false' do 
+      indexes :fullname,   type: 'string', analyzer: 'german'
       indexes :twitter,    type: 'string', analyzer: 'twitter_analyzer'
-      indexes :topic_list, type: 'string', analyzer: 'topic_list_analyzer' #query: scoring abschalten????
+      indexes :topic_list, type: 'string', analyzer: 'topic_list_analyzer'
       indexes :main_topic, type: 'string', analyzer: 'standard'
-      indexes :languages,  type: 'string', analyzer: 'standard' # array? pass 2 fields, german & english
+      indexes :languages,  type: 'string', analyzer: 'standard' # array? german & english drop down!!!
       indexes :city,       type: 'string', analyzer: 'standard' # geodaten??
-      indexes :country,    type: 'string', analyzer: 'standard'
+      indexes :country,    type: 'string', analyzer: 'standard' # not analyzed, iso standard
       indexes :website,    type: 'string', analyzer: 'standard'
-      indexes :bio,        type: 'string', analyzer: 'german' # german more or less superset of english
+      indexes :bio,        type: 'string', analyzer: 'standard', fields: { english: { type:  "string", analyzer: "english" }, german: { type:  "string", analyzer: "german"} }
     end
   end
 
