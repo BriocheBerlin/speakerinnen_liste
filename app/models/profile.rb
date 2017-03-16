@@ -65,6 +65,14 @@ class Profile < ActiveRecord::Base
     "#{firstname} #{lastname}".strip
   end
 
+  def cities
+    "#{city}".gsub(/(,|\/)/, "").split(" ")
+  end
+
+  def split_languages
+    "#{languages}".gsub(/(,|\/)/, "").split(" ")
+  end
+
   def bio_by_language
     Hash[translations.map do |t|
       [t.locale, t.bio]
