@@ -6,7 +6,9 @@ class Profile < ActiveRecord::Base
 
   has_many :medialinks
 
-  translates :bio, :main_topic, fallbacks_for_empty_translations: true
+  # translates had to be moved to concerns/searchable.rb for correct index
+  # mapping in elasticsearch
+  # translates :bio, :main_topic, fallbacks_for_empty_translations: true
   accepts_nested_attributes_for :translations
 
   extend FriendlyId

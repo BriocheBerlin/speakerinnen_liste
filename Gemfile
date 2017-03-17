@@ -42,6 +42,7 @@ gem 'active_model_serializers', '~> 0.10.0'
 
 gem 'elasticsearch-rails'
 gem 'elasticsearch-model'
+gem 'elasticsearch-model-globalize'
 
 group :development do
   gem 'letter_opener'
