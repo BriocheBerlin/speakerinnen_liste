@@ -67,10 +67,6 @@ class Profile < ActiveRecord::Base
     "#{firstname} #{lastname}".strip
   end
 
-  def bio_by_language
-    { bio: translations.map { |t| [t.locale, t.bio] }.to_h }
-  end
-
   def name_or_email
     fullname.present? ? fullname : email
   end
