@@ -10,6 +10,46 @@ module Searchable
 
     index_name [Rails.application.engine_name, Rails.env].join('_')
 
+    def self.search(query)
+      __elasticsearch__.search(
+        {
+          query: {
+            multi_match: {
+              query: query,
+              fields: [
+                'firstname',
+                'lastname',
+                'fullname',
+                'twitter',
+                'topic_list',
+                'main_topic_en',
+                'main_topic_de',
+                'split_languages',
+                # 'cities.unmod',
+                'cities.standard^1.5',
+                'country',
+                'bio_de',
+                'bio_en'
+              ],
+              tie_breaker: 0.3,
+              fuzziness: 'AUTO'
+            }
+          },
+          aggs: {
+            lang: {
+              terms: {
+                field: "split_languages"
+              }
+            },
+            city: {
+              terms: {
+                field: "cities.unmod"
+              }
+            }
+          }
+        })
+    end
+
     def as_indexed_json(options={})
       as_json(
         # change city to cities (list)
