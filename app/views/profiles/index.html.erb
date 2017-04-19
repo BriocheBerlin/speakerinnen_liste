@@ -22,6 +22,24 @@
               t(:result, scope: 'search', count: @profiles.total_count).html_safe %><br>
           <%= t(:profiles, link: link_to(t(:all_profiles, scope: 'search'), profiles_path), scope: 'search').html_safe %>
         </p>
+<!-- 
+        <%# facets %>
+        <% @profiles.response.facets.each do |facet,facet_data| %>
+          <div class='form-group'>
+            <label><%= ActiveSupport::Inflector.humanize(facet) %></label>
+            <select class='form-control facet_select' size='5' name="search[<%= facet %>][]" multiple>
+              <% facet_data.terms.each do |f| %>
+                <% selected = (params[:search].present? && params[:search][facet].present? && params[:search][facet].include?(f[:term].to_s)) ? true : false %>
+                <option data-selected="<%= selected %>" value="<%= f[:term] %>" <%= selected ? "selected" : "" %> >
+                  <%= f[:term] %>
+                  (<%= f[:count] %>)
+                </option>
+              <% end %>
+            </select>
+          </div>
+        <% end %> -->
+
+
       <% elsif @profiles.size <1 && @profiles.response.response.suggest.did_you_mean_fullname.first.options.present? %>
         <p class="text--color-blue font-size-24 text--left layout__item 1/1">
         <%= t(:did_you_mean, scope: 'search', suggestions_fullname: @profiles.response.response.suggest.did_you_mean_fullname.first.options.map {|sug| link_to(sug.text.capitalize, "profiles_search?&search=#{sug.text}")} * ", " ).html_safe %>

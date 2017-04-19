@@ -7,11 +7,116 @@ module Searchable
 
     index_name [Rails.application.engine_name, Rails.env].join('_')
 
-    def self.search(query)
+   # todo/note: params processing is a controller function.
+    def search_params(params={})
+      return [nil,nil] if params.blank? || params[:search].blank?
+      p = params[:search].dup
+      q = p.delete(:q)
+      [q, p]
+    end
+
+    # # define search method to be used in Rails controller
+    # def search(query=nil, options={})
+
+      # options ||= {}
+
+      # # setup empty search definition
+      # @search_definition = {
+      #   filter: {},
+      #   facets: {},
+      # }
+
+      # # Prefill and set the filters (top-level `filter` and `facet_filter` elements)
+      # __set_filters = lambda do |key, f|
+
+      #   @search_definition[:filter][:and] ||= []
+      #   @search_definition[:filter][:and]  |= [f]
+
+      #   @search_definition[:facets][key.to_sym][:facet_filter][:and] ||= []
+      #   @search_definition[:facets][key.to_sym][:facet_filter][:and]  |= [f]
+      # end
+
+      # # facets
+      # @search_definition[:facets] = search_facet_fields.each_with_object({}) do |a,hsh|
+      #   hsh[a.to_sym] = {
+      #     terms: {
+      #       field: a
+      #     },
+      #     facet_filter: {}
+      #   }
+      # end
+
+      # # add filters for facets
+      # options.each do |key,value|
+      #   next unless search_facet_fields.include?(key)
+      #   f = { term: { key.to_sym => value } }
+      #   __set_filters.(key, f)
+      # end
+
+
+   # return array of model attributes to search on
+    def search_text_fields
+      Profile.content_columns.select {|c| [:string,:text].include?(c.type) }.map {|c| c.name }
+    end
+
+    # return array of model attributes to facet
+    def self.search_facet_fields
+      Profile.content_columns.select {|c| [:boolean,:decimal,:float,:integer,:string,:text].include?(c.type) }.map {|c| c.name }
+    end
+
+    # todo/note: params processing is a controller function.
+    def search_params(query=nil, params={})
+      return [nil,nil] if params.blank? || params[:search].blank?
+      p = params[:search].dup
+      q = p.delete(:q)
+      [q, p]
+    end
+
+    def self.search(query=nil, options={})
+      options ||= {}
+
+      # setup empty search definition
+      @search_definition = {
+        query:  {},
+        filter: {},
+        facets: {},
+      }
+
+      # Prefill and set the filters (top-level `filter` and `facet_filter` elements)
+      __set_filters = lambda do |key, f|
+
+        @search_definition[:filter][:and] ||= []
+        @search_definition[:filter][:and]  |= [f]
+
+        @search_definition[:facets][key.to_sym][:facet_filter][:and] ||= []
+        @search_definition[:facets][key.to_sym][:facet_filter][:and]  |= [f]
+      end
+
+      # facets
+      @search_definition[:facets] = search_facet_fields.each_with_object({}) do |a,hsh|
+        hsh[a.to_sym] = {
+          terms: {
+            field: a
+          },
+          facet_filter: {}
+        }
+      end
+
+      # add filters for facets
+      options.each do |key,value|
+        next unless search_facet_fields.include?(key)
+        f = { term: { key.to_sym => value } }
+        __set_filters.(key, f)
+      end
       __elasticsearch__.search(
+        # this makes it break:
+        # @search_definition,
         {
+
+          # query: {
+          #   function_score: {
           # minimum score depends completely on the given data and query, find out what works in your case.
-          min_score: 0.3, # this makes index creation on tests fail :(
+          # min_score: 0.3, # this makes index creation on tests fail :(
           query: {
             multi_match: {
               query: query,
@@ -30,9 +135,27 @@ module Searchable
                 'country'
               ],
               tie_breaker: 0.3,
-              minimum_should_match: "76%"
+              minimum_should_match: '76%'
             }
           },
+              # # boost: '5',
+              # functions: [
+              #   {
+              #     filter: {
+              #       match: {
+              #         'cities.standard': query
+              #       }
+              #     },
+              #     weight: 3
+              #   }
+              # ],
+              # max_boost: 3,
+              # # score_mode: 'max',
+              # boost_mode: 'multiply',
+              # min_score: 0.3
+          #   }
+          # },
+
           # suggester for zero matches
           suggest: {
             did_you_mean_fullname: {
@@ -61,7 +184,8 @@ module Searchable
               }
             }
           }
-        })
+        }
+      )
     end
 
     def as_indexed_json(options={})
@@ -167,7 +291,7 @@ module Searchable
       }
     }
 
-    ANALYZERS = { de: 'german', en: 'english' }
+    analyzers = { de: 'german', en: 'english' }
 
     settings elasticsearch_mappings do
       mappings dynamic: 'false' do
@@ -185,7 +309,7 @@ module Searchable
         end
         I18n.available_locales.each do |locale|
           [:main_topic, :bio].each do |name|
-            indexes :"#{name}_#{locale}", type: 'string', analyzer: "#{ANALYZERS[locale]}_without_stemming" do
+            indexes :"#{name}_#{locale}", type: 'string', analyzer: "#{analyzers[locale]}_without_stemming" do
               if name == :main_topic
                 indexes :suggest,  type: 'completion'
               end

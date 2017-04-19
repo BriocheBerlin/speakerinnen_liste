@@ -62,6 +62,10 @@ class Profile < ActiveRecord::Base
 
   scope :no_admin, -> { where(admin: false) }
 
+  def search_facet_fields
+    self.content_columns.select {|c| [:boolean,:decimal,:float,:integer,:string,:text].include?(c.type) }.map {|c| c.name }
+  end
+
   def fullname
     "#{firstname} #{lastname}".strip
   end

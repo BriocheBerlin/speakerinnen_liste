@@ -88,6 +88,8 @@ class ProfilesController < ApplicationController
 
   private
 
+
+
   # Use callbacks to share common setup or constraints between actions.
   def set_profile
     @profile = Profile.friendly.find(params[:id])
