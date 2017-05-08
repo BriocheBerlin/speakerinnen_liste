@@ -40,12 +40,12 @@ module Searchable
               term: {
                 field: 'fullname'
               }
-            },
-            did_you_mean_main_topic_en: {
-              text: query,
-              term: {
-                field: 'main_topic_en'
-              }
+            # },
+            # did_you_mean_main_topic_en: {
+            #   text: query,
+            #   term: {
+            #     field: 'main_topic_en'
+            #   }
             }
           },
           # aggregation, will be used for faceted search
@@ -185,11 +185,12 @@ module Searchable
         end
         I18n.available_locales.each do |locale|
           [:main_topic, :bio].each do |name|
-            indexes :"#{name}_#{locale}", type: 'string', analyzer: "#{ANALYZERS[locale]}_without_stemming" do
-              if name == :main_topic
-                indexes :suggest, type: 'completion'
-              end
-            end
+            indexes :"#{name}_#{locale}", type: 'string', analyzer: "#{ANALYZERS[locale]}_without_stemming"
+            #  do
+            #   if name == :main_topic
+            #     indexes :suggest, type: 'completion'
+            #   end
+            # end
           end
         end
         indexes :split_languages, type: 'string', analyzer: 'language_analyzer', 'norms': { 'enabled': false }
@@ -221,16 +222,16 @@ module Searchable
           completion: { field: 'lastname.suggest'
           }
         },
-        main_topic_de_suggest: {
-          text: q,
-          completion: { field: 'main_topic_de.suggest'
-          }
-        },
-        main_topic_en_suggest: {
-          text: q,
-          completion: { field: 'main_topic_en.suggest'
-          }
-        },
+        # main_topic_de_suggest: {
+        #   text: q,
+        #   completion: { field: 'main_topic_de.suggest'
+        #   }
+        # },
+        # main_topic_en_suggest: {
+        #   text: q,
+        #   completion: { field: 'main_topic_en.suggest'
+        #   }
+        # },
         topic_list_suggest: {
           text: q,
           completion: { field: 'topic_list.suggest'
